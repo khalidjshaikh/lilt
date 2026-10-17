@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#101410" />
+    <meta
+      name="description"
+      content="Lilt is a small acoustic language for sending text between two computers with a speaker and a microphone."
+    />
+    <title>Lilt — send text through the air</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="ambient ambient-a" aria-hidden="true"></div>
+    <div class="ambient ambient-b" aria-hidden="true"></div>
+
+    <header class="topbar">
+      <a class="wordmark" href="#" aria-label="Lilt home">
+        <span class="wordmark-glyph" aria-hidden="true">
+          <i></i><i></i><i></i><i></i>
+        </span>
+        <span class="wordmark-text">Lilt</span>
+        <span class="version">v1.0</span>
+      </a>
+      <p class="topbar-tagline">an acoustic language for computers</p>
+      <div class="signal-status" id="signalStatus" data-state="off">
+        <span class="status-dot" aria-hidden="true"></span>
+        <span id="statusText">Microphone off</span>
+      </div>
+    </header>
+
+    <main class="shell">
+      <section class="intro">
+        <div>
+          <p class="kicker">No network. No cable.</p>
+          <h1>Send a sentence<br /><em>through the air.</em></h1>
+        </div>
+        <div class="intro-side">
+          <p class="lede">
+            Lilt turns text into a short melody of pure tones. One computer
+            sings; another listens. The room is the connection.
+          </p>
+          <p class="micro-spec">
+            <span>16 tones</span>
+            <span>20 syllables / sec</span>
+            <span>RS error correction</span>
+          </p>
+        </div>
+      </section>
+
+      <div class="console">
+        <section class="panel compose" aria-labelledby="composeTitle">
+          <header class="panel-head">
+            <span class="panel-index">01</span>
+            <h2 id="composeTitle">Compose</h2>
+            <span class="panel-note">write for the air</span>
+          </header>
+
+          <div class="compose-body">
+            <label class="sr-only" for="messageInput">Message to send by sound</label>
+            <textarea
+              id="messageInput"
+              spellcheck="true"
+              placeholder="Type something worth hearing…"
+              rows="5"
+            ></textarea>
+            <div class="compose-meta">
+              <span id="byteCount" class="mono">0 / 512 bytes</span>
+              <span id="airtime" class="mono">≈ 3.6 s of air</span>
+            </div>
+          </div>
+
+          <footer class="panel-foot compose-foot">
+            <p class="hint" id="composeHint">
+              Keep it short. Lilt is a language for small, deliberate messages.
+            </p>
+            <button id="sendButton" class="primary-button" type="button" disabled>
+              <span class="button-wave" aria-hidden="true">
+                <i></i><i></i><i></i>
+              </span>
+              <span>Send by sound</span>
+            </button>
+          </footer>
+
+          <div class="transmit-progress" id="transmitProgress" hidden>
+            <span data-stage="call">call</span>
+            <span data-stage="greeting">greeting</span>
+            <span data-stage="head">head</span>
+            <span data-stage="body">body</span>
+          </div>
+        </section>
+
+        <section class="panel receive" aria-labelledby="receiveTitle">
+          <header class="panel-head">
+            <span class="panel-index">02</span>
+            <h2 id="receiveTitle">Hear</h2>
+            <button id="micButton" class="text-button" type="button">
+              Open microphone
+            </button>
+          </header>
+
+          <div class="receive-state">
+            <div class="level-track" aria-hidden="true">
+              <span id="levelBar"></span>
+            </div>
+            <p id="listenText" aria-live="polite">
+              The microphone is closed. Open it to let this computer listen for
+              a call.
+            </p>
+          </div>
+
+          <div class="messages" id="messages" aria-live="polite" aria-relevant="additions">
+            <div class="empty-state" id="emptyState">
+              <div class="empty-rings" aria-hidden="true">
+                <span></span><span></span><span></span>
+              </div>
+              <p class="empty-title">The air is quiet.</p>
+              <p class="empty-copy">
+                Messages will settle here after this computer hears them.
+              </p>
+            </div>
+            <div id="messageList"></div>
+          </div>
+
+          <footer class="panel-foot receive-foot">
+            <span class="mono" id="receiveMeta">0 messages heard</span>
+            <button id="clearButton" class="text-button quiet" type="button" disabled>
+              Clear
+            </button>
+          </footer>
+        </section>
+      </div>
+
+      <section class="scope-card" id="scopeCard" aria-labelledby="scopeTitle">
+        <header class="scope-head">
+          <div>
+            <p class="kicker dark">Live tone field</p>
+            <h2 id="scopeTitle">Room tone</h2>
+          </div>
+          <div class="scope-tools">
+            <p class="scope-note">each bar is a syllable</p>
+            <label class="volume-control" for="volumeInput">
+              <span>Speaker</span>
+              <input
+                id="volumeInput"
+                type="range"
+                min="0"
+                max="100"
+                value="72"
+                aria-label="Speaker volume"
+              />
+            </label>
+          </div>
+        </header>
+        <div class="scope-canvas-wrap">
+          <canvas id="scopeCanvas" aria-label="Live audio tone levels"></canvas>
+          <div class="scope-idle" id="scopeIdle">waiting for sound</div>
+        </div>
+        <footer class="scope-foot">
+          <span id="scopeFrequencies" class="mono">600 Hz → 2100 Hz</span>
+          <span class="mono">0–F · 4 bits per syllable · 50 ms</span>
+        </footer>
+      </section>
+
+      <footer class="page-foot">
+        <span>Lilt is made of air, arithmetic, and a little patience.</span>
+        <button id="aboutButton" class="text-button" type="button">
+          How the language works <span aria-hidden="true">↗</span>
+        </button>
+      </footer>
+    </main>
+
+    <dialog id="aboutDialog" class="about-dialog">
+      <article>
+        <header class="about-head">
+          <p class="kicker dark">The language</p>
+          <h2>A sentence is<br /><em>a small song.</em></h2>
+          <button id="closeAbout" class="icon-button" type="button" aria-label="Close">
+            ×
+          </button>
+        </header>
+
+        <div class="about-lede">
+          <p>
+            Lilt is a one-way acoustic modem with the manners of a language. It
+            uses sixteen pure tones between 600 and 2100 Hz. Each tone carries
+            one nibble; two nibbles make one byte of UTF-8 text.
+          </p>
+          <p>
+            Nothing is sent over Wi-Fi or Bluetooth. The speaker pushes pressure
+            into the room, and the microphone reads it back.
+          </p>
+        </div>
+
+        <div class="frame-diagram" aria-label="Frame anatomy">
+          <div class="frame-stage call">
+            <span class="frame-number">00</span>
+            <strong>Call</strong>
+            <small>two-tone chord · 600 ms</small>
+          </div>
+          <div class="frame-arrow" aria-hidden="true">→</div>
+          <div class="frame-stage">
+            <span class="frame-number">01</span>
+            <strong>Greeting</strong>
+            <small>eight known syllables</small>
+          </div>
+          <div class="frame-arrow" aria-hidden="true">→</div>
+          <div class="frame-stage">
+            <span class="frame-number">02</span>
+            <strong>Head</strong>
+            <small>version · id · length · checksum</small>
+          </div>
+          <div class="frame-arrow" aria-hidden="true">→</div>
+          <div class="frame-stage">
+            <span class="frame-number">03</span>
+            <strong>Body</strong>
+            <small>UTF-8 text + Reed–Solomon</small>
+          </div>
+        </div>
+
+        <section class="about-section">
+          <h3>The sixteen syllables</h3>
+          <p>
+            Tones are spaced 100 Hz apart. The receiver compares their energy
+            forty times a second; a tiny clock inside the greeting keeps every
+            syllable aligned.
+          </p>
+          <div class="tone-table" id="toneTable"></div>
+        </section>
+
+        <section class="about-section split">
+          <div>
+            <h3>Error correction</h3>
+            <p>
+              Every eleven syllables of data gain four parity syllables. The
+              resulting RS(15, 11) codeword can repair two wrong tones. Body
+              blocks are interleaved, so a cough or a chair scrape is spread
+              across several codewords instead of destroying one.
+            </p>
+          </div>
+          <div>
+            <h3>Then a checksum</h3>
+            <p>
+              A CRC-16 seals the message. The receiver only shows text after
+              the greeting, head, body and seal all agree. If the air was too
+              noisy, it says so rather than inventing words.
+            </p>
+          </div>
+        </section>
+
+        <section class="about-section">
+          <h3>Why so slow?</h3>
+          <p>
+            A room is a messy channel: echoes, rattles, fan noise. Lilt spends
+            its bandwidth on being understood rather than being fast. It carries
+            about 59 bits per second after error correction — enough for a
+            sentence, not a stream.
+          </p>
+        </section>
+
+        <footer class="about-foot">
+          <span class="mono">LILT/1 · 16-ary FSK · RS(15,11) · CRC-16</span>
+          <button id="sampleButton" class="secondary-button" type="button">
+            Hear a sample message
+          </button>
+        </footer>
+      </article>
+    </dialog>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+    <script type="module" src="src/app.js"></script>
+  </body>
+</html>

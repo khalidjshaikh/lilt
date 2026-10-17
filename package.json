@@ -1,0 +1,11 @@
+{
+  "name": "lilt",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "A small acoustic language for sending text between computers with a speaker and a microphone.",
+  "scripts": {
+    "start": "python3 -m http.server 8787 --bind 127.0.0.1",
+    "test": "node --test tests/*.test.js"
+  }
+}
