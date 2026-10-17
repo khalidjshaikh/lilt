@@ -20,6 +20,12 @@ import { pathToFileURL } from "node:url";
 import { buildPacket, CALL_TO_DATA_MS } from "../src/protocol.js";
 import { decodeRecording, detectCall, synthesizePacket } from "../src/dsp.js";
 import { decodeWav, encodeWav } from "../src/wav.js";
+import {
+  listAudioInputs,
+  playFile,
+  resolveMicrophone,
+  sleep,
+} from "./audio-tools.js";
 
 const DEFAULT_TEXT = "hello from the room";
 const DEFAULT_MESSAGE_ID = 42;
@@ -233,102 +239,6 @@ function startRecorder({ micIndex, recordSeconds, sampleRate, recordingPath }) {
   return { ready, done };
 }
 
-function playFile(path) {
-  return new Promise((resolve, reject) => {
-    const child = spawn("afplay", [path], { stdio: ["ignore", "ignore", "pipe"] });
-    let stderr = "";
-    child.stderr.on("data", (chunk) => {
-      stderr += chunk.toString();
-    });
-    child.on("error", reject);
-    child.on("close", (code) => {
-      if (code === 0) resolve();
-      else reject(new Error(`afplay failed with exit code ${code}: ${stderr.trim()}`));
-    });
-  });
-}
-
-function listAudioInputs() {
-  let output = "";
-  try {
-    execFileSync(
-      "ffmpeg",
-      ["-hide_banner", "-f", "avfoundation", "-list_devices", "true", "-i", ""],
-      { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] },
-    );
-  } catch (error) {
-    output = error.stderr ?? error.stdout ?? "";
-  }
-  const lines = output.split(/\r?\n/);
-  const inputs = [];
-  let inAudio = false;
-  for (const line of lines) {
-    if (line.includes("AVFoundation audio devices:")) {
-      inAudio = true;
-      continue;
-    }
-    if (line.includes("AVFoundation video devices:")) {
-      inAudio = false;
-      continue;
-    }
-    if (!inAudio) continue;
-    const match = /\[(\d+)\]\s+(.+?)\s*$/.exec(line);
-    if (match) inputs.push({ index: Number(match[1]), name: match[2] });
-  }
-  if (inputs.length === 0) {
-    throw new Error(
-      "No microphone inputs were found. Install ffmpeg and check Microphone permission.",
-    );
-  }
-  return inputs;
-}
-
-function resolveMicrophone(requested, inputs) {
-  if (requested != null && String(requested).trim() !== "") {
-    const value = String(requested).trim();
-    if (/^\d+$/.test(value)) {
-      const byIndex = inputs.find((input) => input.index === Number(value));
-      if (byIndex) return byIndex;
-    }
-    const lowered = value.toLowerCase();
-    const byName = inputs.find((input) => input.name.toLowerCase().includes(lowered));
-    if (byName) return byName;
-    throw new Error(
-      `No microphone matches ${JSON.stringify(value)}. Available: ` +
-        inputs.map((input) => `${input.index}=${input.name}`).join(", "),
-    );
-  }
-
-  const defaultName = defaultInputName();
-  if (defaultName) {
-    const byDefault = inputs.find(
-      (input) => input.name.toLowerCase() === defaultName.toLowerCase(),
-    );
-    if (byDefault) return byDefault;
-  }
-  return inputs[0];
-}
-
-function defaultInputName() {
-  try {
-    const output = execFileSync("system_profiler", ["SPAudioDataType", "-json"], {
-      encoding: "utf8",
-      stdio: ["ignore", "pipe", "ignore"],
-    });
-    const data = JSON.parse(output);
-    for (const group of data.SPAudioDataType ?? []) {
-      for (const item of group._items ?? []) {
-        if (item.coreaudio_default_audio_input_device === "spaudio_yes") {
-          return item._name;
-        }
-      }
-    }
-  } catch {
-    // system_profiler is a convenience; ffmpeg's list is authoritative.
-  }
-  return null;
-}
-
 function readSystemVolume() {
   const output = execFileSync("osascript", ["-e", "get volume settings"], {
     encoding: "utf8",
@@ -351,10 +261,6 @@ function setSystemVolume(volume, muted = false) {
     ],
     { stdio: ["ignore", "ignore", "ignore"] },
   );
-}
-
-function sleep(milliseconds) {
-  return new Promise((resolve) => setTimeout(resolve, milliseconds));
 }
 
 function withArtifacts(error, transmitPath, recordingPath) {

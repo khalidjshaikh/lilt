@@ -47,6 +47,36 @@ Then:
 The **How the language works** dialog in the app has a short tour, and
 [`PROTOCOL.md`](PROTOCOL.md) has the full language and frame specification.
 
+## Send and listen from the terminal
+
+The same language is available without a browser. On the receiving computer:
+
+```bash
+npm run listen
+```
+
+It opens the microphone, prints each decoded message to **standard output**
+(one message per line), and sends progress and errors to standard error. Press
+Ctrl+C to stop. Use `--mic <index|name>` or `LILT_MIC` to choose an input, and
+`--once` to exit after the first message.
+
+On the sending computer:
+
+```bash
+npm run send -- "hello from the room"
+```
+
+The positional text is the message; `--text` is equivalent. You can also pipe
+text into the sender:
+
+```bash
+printf 'hello from a pipe' | npm run send
+```
+
+Both commands render the same frames as the web app and use the system speaker
+and microphone. Terminal listening is macOS-only for now and needs `ffmpeg` on
+your `PATH`; sending uses `afplay` on macOS and `ffplay` elsewhere.
+
 ## What Lilt sounds like
 
 A message begins with a two-tone **call** (600 Hz + 2100 Hz), then a short
@@ -124,6 +154,10 @@ src/app.js             receiving state machine and interface behaviour
 src/capture-worklet.js microphone sample pump
 src/wav.js             PCM WAV codec for the acoustic test
 scripts/serve.js       dual-stack IPv4/IPv6 local dev server
+scripts/send.js        play one message through the speaker
+scripts/listen.js      print messages heard through the microphone
+scripts/live-receiver.js  streaming call/head/body state machine
+scripts/audio-tools.js system speaker, microphone and ffmpeg helpers
 scripts/acoustic-loopback.js  speaker → microphone hardware test
 tests/                 protocol and acoustic simulations
 PROTOCOL.md            the language specification

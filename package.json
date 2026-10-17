@@ -8,6 +8,8 @@
     "start": "node scripts/serve.js",
     "test": "node --test tests/*.test.js",
     "acoustic": "node scripts/acoustic-loopback.js",
-    "test:acoustic": "LILT_ACOUSTIC=1 node --test tests/acoustic-loopback.test.js"
+    "test:acoustic": "LILT_ACOUSTIC=1 node --test tests/acoustic-loopback.test.js",
+    "send": "node scripts/send.js",
+    "listen": "node scripts/listen.js"
   }
 }
