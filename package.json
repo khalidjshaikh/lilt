@@ -6,6 +6,8 @@
   "description": "A small acoustic language for sending text between computers with a speaker and a microphone.",
   "scripts": {
     "start": "node scripts/serve.js",
-    "test": "node --test tests/*.test.js"
+    "test": "node --test tests/*.test.js",
+    "acoustic": "node scripts/acoustic-loopback.js",
+    "test:acoustic": "LILT_ACOUSTIC=1 node --test tests/acoustic-loopback.test.js"
   }
 }

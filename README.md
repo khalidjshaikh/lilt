@@ -89,10 +89,28 @@ npm test
 ```
 
 The test suite covers the GF(16) Reed–Solomon code, CRCs, frame round-trips,
-interleaving, checksum rejection, and end-to-end acoustic decoding through
-noise, echo, sample-rate variation, and long Unicode messages. A browser
-loopback check was also used during development to test the microphone capture
-path end to end.
+interleaving, checksum rejection, WAV round-trips, and end-to-end acoustic
+decoding through noise, echo, sample-rate variation, and long Unicode messages.
+
+There is also a real speaker-to-microphone loopback test, kept out of the
+default run because it needs hardware and permission to use it:
+
+```bash
+npm run test:acoustic
+```
+
+On macOS it renders a packet, plays it with `afplay`, records the room with
+`ffmpeg`/`avfoundation`, and asserts that the text comes back. It needs
+`ffmpeg` on your `PATH`. It finds the system input automatically, sets the
+output volume to 40 for the test (and restores it afterwards), and uses
+`--mic`/`LILT_MIC` to choose an input:
+
+```bash
+npm run acoustic -- --text "hello, room" --keep
+```
+
+The test plays a short melody into the room, so keep the room reasonably quiet.
+It is deliberately not part of `npm test`.
 
 ## Files
 
@@ -104,7 +122,9 @@ src/dsp.js             synthesis, Goertzel demodulation, call detection, decode
 src/audio.js           microphone ring buffer and speaker playback
 src/app.js             receiving state machine and interface behaviour
 src/capture-worklet.js microphone sample pump
+src/wav.js             PCM WAV codec for the acoustic test
 scripts/serve.js       dual-stack IPv4/IPv6 local dev server
+scripts/acoustic-loopback.js  speaker → microphone hardware test
 tests/                 protocol and acoustic simulations
 PROTOCOL.md            the language specification
 ```
